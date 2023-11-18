@@ -1,5 +1,6 @@
 import "./App.css";
-import { Routes, Route, Navigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
+import Router from "./components/Router";
 
 function App() {
   return (
@@ -24,15 +25,7 @@ function App() {
           <Link to="/profile">Profile</Link>
         </li>
       </ul>
-      <Routes>
-        <Route path="/" element={<h1>Hyukskee blog</h1>} />
-        <Route path="/posts" element={<h1>Posts page</h1>} />
-        <Route path="/posts/:id" element={<h1>Posts detail page</h1>} />
-        <Route path="/posts/new" element={<h1>Posts new page</h1>} />
-        <Route path="/posts/edit" element={<h1>Posts edit page</h1>} />
-        <Route path="/profile" element={<h1>Profile page</h1>} />
-        <Route path="*" element={<Navigate replace to="/" />} />
-      </Routes>
+      <Router />
     </>
   );
 }
