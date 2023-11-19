@@ -61,8 +61,8 @@ export default function Home() {
                 외곽 예스진지투어 또는 화련 택시투어만 생각하시는데요.
               </PostContent>
               <PostAction>
-                <PostEdit>수정</PostEdit>
-                <PostDelete>삭제</PostDelete>
+                <PostActionButton color="#8585ff">수정</PostActionButton>
+                <PostActionButton color="#ff4949">삭제</PostActionButton>
               </PostAction>
             </PostBox>
           );
@@ -72,6 +72,10 @@ export default function Home() {
       <HomeFooter>Hyukskee blog</HomeFooter>
     </>
   );
+}
+
+interface IPostActionButton {
+  color: string;
 }
 
 const HomeHeader = styled.header`
@@ -159,6 +163,7 @@ const PostTitle = styled.div`
   font-size: 20px;
   font-weight: 600;
   color: #202020;
+  cursor: pointer;
 `;
 
 const PostContent = styled.div`
@@ -171,6 +176,8 @@ const PostContent = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: keep-all;
+  color: #a2a2a2;
+  cursor: pointer;
 `;
 
 const PostAction = styled.div`
@@ -180,18 +187,9 @@ const PostAction = styled.div`
   width: 100%;
 `;
 
-const PostEdit = styled.button`
-  color: #8585ff;
+const PostActionButton = styled.button<IPostActionButton>`
+  color: ${(props) => props.color};
   padding: 8px;
-  min-width: 50px;
-  background-color: #ffffff;
-  border: 1px solid #dfdfdf;
-  border-radius: 12px;
-`;
-
-const PostDelete = styled.button`
-  color: #ff4949;
-  padding: 4px;
   min-width: 50px;
   background-color: #ffffff;
   border: 1px solid #dfdfdf;
