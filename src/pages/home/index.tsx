@@ -188,10 +188,17 @@ const PostAction = styled.div`
 `;
 
 const PostActionButton = styled.button<IPostActionButton>`
-  color: ${(props) => props.color};
+  color: #373737;
   padding: 8px;
   min-width: 50px;
   background-color: #ffffff;
   border: 1px solid #dfdfdf;
   border-radius: 12px;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    background-color: #f0f0f0;
+    color: ${(props) => props.color};
+  }
 `;
