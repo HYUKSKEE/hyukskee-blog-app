@@ -11,8 +11,8 @@ export default function PostList({ hasNavigation = true }: PostListProps) {
       <Posts>
         {hasNavigation && (
           <TabFilter>
-            <Tab active={true}>전체</Tab>
-            <Tab active={false}>나의 글</Tab>
+            <Tab active="true">전체</Tab>
+            <Tab active="false">나의 글</Tab>
           </TabFilter>
         )}
         {[
@@ -75,7 +75,7 @@ export interface IPostActionButton {
 }
 
 interface ITab {
-  active: boolean;
+  active: string;
 }
 
 const TabFilter = styled.div`
@@ -86,7 +86,7 @@ const TabFilter = styled.div`
 
 const Tab = styled.div<ITab>`
   cursor: pointer;
-  font-weight: ${(props) => (props.active ? 900 : 400)};
+  font-weight: ${(props) => (props.active === "true" ? 900 : 400)};
 `;
 
 const Posts = styled.div`
