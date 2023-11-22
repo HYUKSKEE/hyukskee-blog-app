@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
@@ -5,14 +6,28 @@ interface PostListProps {
   hasNavigation?: boolean;
 }
 
+type TActiveTab = "all" | "me";
+
 export default function PostList({ hasNavigation = true }: PostListProps) {
+  const [currentTab, setCurrentTab] = useState<TActiveTab>("all");
+
   return (
     <>
       <Posts>
         {hasNavigation && (
           <TabFilter>
-            <Tab active="true">전체</Tab>
-            <Tab active="false">나의 글</Tab>
+            <Tab
+              active={currentTab === "all" ? "true" : "false"}
+              onClick={() => setCurrentTab("all")}
+            >
+              전체
+            </Tab>
+            <Tab
+              active={currentTab === "me" ? "true" : "false"}
+              onClick={() => setCurrentTab("me")}
+            >
+              나의 글
+            </Tab>
           </TabFilter>
         )}
         {[
