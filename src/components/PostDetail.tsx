@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { IPostActionButton } from "../components/PostList";
+import { IPostActionButton } from "components/PostList";
 import Header from "./Header";
 import Footer from "./Footer";
 
