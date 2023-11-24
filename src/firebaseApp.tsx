@@ -5,12 +5,12 @@ export let app: FirebaseApp;
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.API_KEY,
-  authDomain: process.env.AUTH_DOMAIN,
-  projectId: process.env.PROJECT_ID,
-  storageBucket: process.env.STORAGE_BUCKET,
-  messagingSenderId: process.env.MESSAGING_SENDER_ID,
-  appId: process.env.APP_ID,
+  apiKey: "AIzaSyA6btxCde0lsSepXSuOZDefoBBlaf4bPMY",
+  authDomain: "hyukskee-blog.firebaseapp.com",
+  projectId: "hyukskee-blog",
+  storageBucket: "hyukskee-blog.appspot.com",
+  messagingSenderId: "16921852717",
+  appId: "1:16921852717:web:acd559c430d1bfb3ee31a4",
 };
 
 try {

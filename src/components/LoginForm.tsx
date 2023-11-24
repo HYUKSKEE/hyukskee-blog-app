@@ -1,21 +1,96 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
+import { app } from "firebaseApp";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+
 export default function LoginForm() {
+  const [error, setError] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const {
+      target: { name, value },
+    } = e;
+
+    if (name === "email") {
+      setEmail(value);
+
+      const validRegex =
+        /[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*.[a-zA-Z]$/i;
+
+      if (!value?.match(validRegex)) {
+        setError("이메일 형식이 올바르지 않습니다.");
+      } else {
+        setError("");
+      }
+    }
+
+    if (name === "password") {
+      setPassword(value);
+
+      const validRegex =
+        /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+      if (!value?.match(validRegex)) {
+        setError(
+          "비밀번호는 영문, 숫자, 특수문자를 모두 포함하고 8자리 이상이어야 합니다."
+        );
+      } else {
+        setError("");
+      }
+    }
+  };
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    try {
+      const auth = getAuth(app);
+
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
     <>
-      <Form action="/post" method="POST">
+      <Form onSubmit={onSubmit}>
         <h1>로그인</h1>
         <FormBox>
           <FormLabel htmlFor="email">이메일</FormLabel>
-          <FormTextInput type="text" name="email" id="email" required />
+          <FormTextInput
+            type="text"
+            name="email"
+            id="email"
+            value={email}
+            required
+            onChange={onChange}
+          />
         </FormBox>
         <FormBox>
           <FormLabel htmlFor="password">비밀번호</FormLabel>
-          <FormTextInput type="password" name="password" id="password" />
+          <FormTextInput
+            type="password"
+            name="password"
+            id="password"
+            value={password}
+            required
+            onChange={onChange}
+          />
         </FormBox>
+
+        {error && error.length > 0 && <div>{error}</div>}
+
         <FormBox>
-          <FormSubmitInput type="submit" value="로그인" />
+          <FormSubmitInput
+            type="submit"
+            value="로그인"
+            disabled={error?.length > 0}
+          />
         </FormBox>
 
         <FormBox>
