@@ -1,7 +1,7 @@
 import "./App.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { app } from "firebaseApp";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Router from "./components/Router";
 
 function App() {
@@ -12,6 +12,19 @@ function App() {
     } else {
       return false;
     }
+  });
+  const [isUserInit, setIsUserInit] = useState<boolean>(false);
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsAuthenticated(true);
+        setIsUserInit(true);
+      } else {
+        setIsAuthenticated(false);
+        setIsUserInit(false);
+      }
+    });
   });
 
   return (
