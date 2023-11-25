@@ -5,6 +5,9 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Router from "./components/Router";
 import styled from "styled-components";
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 function App() {
   const auth = getAuth(app);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -31,7 +34,10 @@ function App() {
   return (
     <>
       {isUserInit ? (
-        <Router isAuthenticated={isAuthenticated} />
+        <>
+          <ToastContainer />
+          <Router isAuthenticated={isAuthenticated} />
+        </>
       ) : (
         <Loading></Loading>
       )}
@@ -54,12 +60,12 @@ const Loading = styled.div`
   box-sizing: border-box;
   animation: rotation 1s linear infinite;
 
-
   @keyframes rotation {
     0% {
-        transform: rotate(0deg);
+      transform: rotate(0deg);
     }
     100% {
-        transform: rotate(360deg);
+      transform: rotate(360deg);
     }
+  }
 `;
