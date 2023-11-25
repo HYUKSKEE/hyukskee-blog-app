@@ -1,22 +1,46 @@
-import { Link } from "react-router-dom";
 import styled from "styled-components";
 import PostList from "./PostList";
+import { useNavigate } from "react-router-dom";
+
+import { getAuth, signOut } from "firebase/auth";
+import { app } from "firebaseApp";
+import { toast } from "react-toastify";
+import { useContext } from "react";
+import AuthContext from "context/AuthContext";
 
 export default function Profile() {
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+
+  const onSignOut = async () => {
+    try {
+      const auth = getAuth(app);
+      await signOut(auth);
+      toast.success("로그아웃 되었습니다.");
+      navigate("/");
+    } catch (e: any) {
+      console.log(e);
+      toast.error(e?.code);
+    }
+  };
+
   return (
     <>
       <ProfileCard>
         <CardTitle>내 정보</CardTitle>
         <CardContent>
           <ContentList>
-            <LabelText>이메일:</LabelText> kevin@gmail.com
+            <LabelText>이메일:</LabelText> {user?.email}
           </ContentList>
           <ContentList>
-            <LabelText>닉네임:</LabelText> kevin
+            <LabelText>닉네임:</LabelText>
+            {user?.displayName || "사용자"}
           </ContentList>
         </CardContent>
         <LogoutBox>
-          <LogoutLink to="/">로그아웃</LogoutLink>
+          <Logout role="presentation" onClick={onSignOut}>
+            로그아웃
+          </Logout>
         </LogoutBox>
       </ProfileCard>
 
@@ -64,9 +88,11 @@ const LogoutBox = styled.div`
   text-align: center;
 `;
 
-const LogoutLink = styled(Link)`
+const Logout = styled.button`
   max-width: 150px;
   width: 100%;
-  text-decoration: none;
+  background-color: #ffffff;
+  border: none;
   color: #02af89;
+  cursor: pointer;
 `;
