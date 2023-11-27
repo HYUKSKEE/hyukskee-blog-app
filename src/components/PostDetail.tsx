@@ -2,16 +2,33 @@ import styled from "styled-components";
 import { IPostActionButton, PostsType } from "components/PostList";
 import Header from "./Header";
 import Footer from "./Footer";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, deleteDoc } from "firebase/firestore";
 import { db } from "firebaseApp";
 import AuthContext from "context/AuthContext";
 import { useContext, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function PostsDetail() {
   const [post, setPost] = useState<PostsType | null>(null);
   const { user } = useContext(AuthContext);
   const params = useParams();
+  const navigate = useNavigate();
+
+  const handleDelete = async (id?: string) => {
+    const confirm = window.confirm("정말 삭제 하시겠습니까?");
+
+    if (!confirm) {
+      toast.info("게시글 삭제를 취소했습니다.");
+    }
+
+    if (id && confirm) {
+      const docRef = doc(db, "posts", id);
+      await deleteDoc(docRef);
+      toast.error("게시글을 삭제했습니다.");
+      navigate("/");
+    }
+  };
 
   const getPostDetail = async (id: string) => {
     if (id) {
@@ -34,6 +51,8 @@ export default function PostsDetail() {
       {post && (
         <PostBox>
           <PostTitle>{post.title}</PostTitle>
+          <PostCategory>{post.category}</PostCategory>
+
           <PostHeader>
             <PostAuthor>
               <PostAvatar></PostAvatar>
@@ -41,12 +60,18 @@ export default function PostsDetail() {
             </PostAuthor>
             <PostCreatedAt>{post.createdAt}</PostCreatedAt>
           </PostHeader>
+
           {post.email === user?.email && (
             <PostAction>
               <PostLink to={`/posts/edit/${post.id}`}>
                 <PostActionButton color="#8585ff">수정</PostActionButton>
               </PostLink>
-              <PostActionButton color="#ff4949">삭제</PostActionButton>
+              <PostActionButton
+                color="#ff4949"
+                onClick={() => handleDelete(post.id)}
+              >
+                삭제
+              </PostActionButton>
             </PostAction>
           )}
 
@@ -102,6 +127,11 @@ const PostName = styled.div`
 
 const PostCreatedAt = styled.div`
   color: #02af89;
+`;
+
+const PostCategory = styled.div`
+  font-size: 20px;
+  color: #a1a1a1;
 `;
 
 const PostTitle = styled.div`

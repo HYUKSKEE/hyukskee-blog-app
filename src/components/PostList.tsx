@@ -1,12 +1,23 @@
 import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { collection, getDocs } from "firebase/firestore";
+import {
+  doc,
+  collection,
+  getDocs,
+  deleteDoc,
+  query,
+  orderBy,
+  where,
+} from "firebase/firestore";
 import { db } from "firebaseApp";
 import AuthContext from "context/AuthContext";
+import { toast } from "react-toastify";
+import { CATEGORIES, CategoryType } from "./PostForm";
 
 interface PostListProps {
   hasNavigation?: boolean;
+  defaultTab?: TActiveTab;
 }
 
 export interface PostsType {
@@ -15,28 +26,69 @@ export interface PostsType {
   summary: string;
   content: string;
   createdAt: string;
+  updatedAt: string;
   email: string;
+  uid: string;
+  category: CategoryType;
 }
 
-type TActiveTab = "all" | "me";
+type TActiveTab = "all" | "me" | CategoryType;
 
-export default function PostList({ hasNavigation = true }: PostListProps) {
-  const [currentTab, setCurrentTab] = useState<TActiveTab>("all");
+export default function PostList({
+  hasNavigation = true,
+  defaultTab = "all",
+}: PostListProps) {
+  const [currentTab, setCurrentTab] = useState<TActiveTab | string>(defaultTab);
   const [posts, setPosts] = useState<PostsType[]>([]);
   const { user } = useContext(AuthContext);
 
   const getPosts = async () => {
-    const querySnapshot = await getDocs(collection(db, "posts"));
-    querySnapshot.forEach((doc) => {
+    setPosts([]); // post 초기화
+    let postsRef = collection(db, "posts");
+    let postsQuery = query(postsRef, orderBy("createdAt", "asc"));
+
+    if (currentTab === "me") {
+      postsQuery = query(
+        postsRef,
+        where("uid", "==", user?.uid),
+        orderBy("createdAt", "asc")
+      );
+    } else if (currentTab === "all") {
+      postsQuery = query(postsRef, orderBy("createdAt", "asc"));
+    } else {
+      postsQuery = query(
+        postsRef,
+        where("category", "==", currentTab),
+        orderBy("createdAt", "asc")
+      );
+    }
+
+    const dataList = await getDocs(postsQuery);
+    dataList.forEach((doc) => {
       const dataObject = { ...doc.data(), id: doc.id };
 
       setPosts((prev) => [...prev, dataObject as PostsType]);
     });
   };
 
+  const handleDelete = async (id?: string) => {
+    const confirm = window.confirm("정말 삭제 하시겠습니까?");
+
+    if (!confirm) {
+      toast.info("게시글 삭제를 취소했습니다.");
+    }
+
+    if (id && confirm) {
+      const docRef = doc(db, "posts", id);
+      await deleteDoc(docRef);
+      toast.error("게시글을 삭제했습니다.");
+      getPosts(); // post 갱신
+    }
+  };
+
   useEffect(() => {
     getPosts();
-  }, []);
+  }, [currentTab]);
 
   return (
     <>
@@ -55,6 +107,16 @@ export default function PostList({ hasNavigation = true }: PostListProps) {
             >
               나의 글
             </Tab>
+
+            {CATEGORIES.map((category, index) => (
+              <Tab
+                key={index + 1}
+                active={currentTab === category ? "true" : "false"}
+                onClick={() => setCurrentTab(category)}
+              >
+                {category}
+              </Tab>
+            ))}
           </TabFilter>
         )}
         {posts.length > 0 ? (
@@ -66,7 +128,11 @@ export default function PostList({ hasNavigation = true }: PostListProps) {
                     <PostAvatar></PostAvatar>
                     <PostName>{user?.displayName || "사용자"}</PostName>
                   </PostAuthor>
-                  <PostCreatedAt>{post.createdAt}</PostCreatedAt>
+                  <PostCreatedAt>
+                    {post.updatedAt
+                      ? `${post.updatedAt}에 수정됨`
+                      : post.createdAt}
+                  </PostCreatedAt>
                 </PostHeader>
                 <PostLink to={`/posts/${post.id}`}>
                   <PostTitle>{post.title}</PostTitle>
@@ -78,14 +144,19 @@ export default function PostList({ hasNavigation = true }: PostListProps) {
                     <PostLink to={`/posts/edit/${post.id}`}>
                       <PostActionButton color="#8585ff">수정</PostActionButton>
                     </PostLink>
-                    <PostActionButton color="#ff4949">삭제</PostActionButton>
+                    <PostActionButton
+                      color="#ff4949"
+                      onClick={() => handleDelete(post.id)}
+                    >
+                      삭제
+                    </PostActionButton>
                   </PostAction>
                 )}
               </PostBox>
             );
           })
         ) : (
-          <div>게시글이 없습니다.</div>
+          <EmptyPosts>게시글이 없습니다.</EmptyPosts>
         )}
       </Posts>
     </>
@@ -112,6 +183,7 @@ const Tab = styled.div<ITab>`
 `;
 
 const Posts = styled.div`
+  position: relative;
   max-width: 1280px;
   width: 100%;
   height: 100%;
@@ -209,5 +281,41 @@ const PostActionButton = styled.button<IPostActionButton>`
   &:focus {
     background-color: #f0f0f0;
     color: ${(props) => props.color};
+  }
+`;
+
+const EmptyPosts = styled.div`
+  margin: auto;
+  margin-top: 100px;
+  padding: 24px;
+  width: max-content;
+  font-size: 24px;
+  border: 1px solid #dfdfdf;
+  border-radius: 24px;
+  color: #a1a1a1;
+`;
+
+// TODO: loader 적용
+const Loading = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  border: 5px solid black;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+  z-index: 10;
+
+  @keyframes rotation {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 `;

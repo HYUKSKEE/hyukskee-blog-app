@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import PostList from "./PostList";
 import { useNavigate } from "react-router-dom";
 
 import { getAuth, signOut } from "firebase/auth";
@@ -43,8 +42,6 @@ export default function Profile() {
           </Logout>
         </LogoutBox>
       </ProfileCard>
-
-      <PostList hasNavigation={false} />
     </>
   );
 }
