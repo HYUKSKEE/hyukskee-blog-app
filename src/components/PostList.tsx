@@ -1,15 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "firebaseApp";
+import AuthContext from "context/AuthContext";
 
 interface PostListProps {
   hasNavigation?: boolean;
+}
+
+export interface PostsType {
+  id?: string;
+  title: string;
+  summary: string;
+  content: string;
+  createdAt: string;
+  email: string;
 }
 
 type TActiveTab = "all" | "me";
 
 export default function PostList({ hasNavigation = true }: PostListProps) {
   const [currentTab, setCurrentTab] = useState<TActiveTab>("all");
+  const [posts, setPosts] = useState<PostsType[]>([]);
+  const { user } = useContext(AuthContext);
+
+  const getPosts = async () => {
+    const querySnapshot = await getDocs(collection(db, "posts"));
+    querySnapshot.forEach((doc) => {
+      const dataObject = { ...doc.data(), id: doc.id };
+
+      setPosts((prev) => [...prev, dataObject as PostsType]);
+    });
+  };
+
+  useEffect(() => {
+    getPosts();
+  }, []);
 
   return (
     <>
@@ -30,56 +57,36 @@ export default function PostList({ hasNavigation = true }: PostListProps) {
             </Tab>
           </TabFilter>
         )}
-        {[
-          ...Array(10)
-            .fill(0)
-            .map((value, index) => {
-              return index + 1;
-            }),
-        ].map((list) => {
-          return (
-            <PostBox key={list}>
-              <PostHeader>
-                <PostAuthor>
-                  <PostAvatar></PostAvatar>
-                  <PostName>Kevin</PostName>
-                </PostAuthor>
-                <PostCreatedAt>2023.09.23</PostCreatedAt>
-              </PostHeader>
-              <PostLink to={`/posts/${list}`}>
-                <PostTitle>대만 여행 {list}일차 기록</PostTitle>
-                <PostContent>
-                  그런데 가족끼리 함께 하는 여행은 좀 다르죠! 특히 아이들이
-                  있거나 어르신을 모시고 대만여행을 오신다면 대중교통을 이용해
-                  여행을 하는게 좀 부담스러울 수도 있어요. 그렇다고 패키지로
-                  여행을 하자니 여행일정이 맘에 안들거나 대만에서 꼭 가보고 싶은
-                  여행지가 코스에서 빠져있는 경우도 많고요. 그런분들에게
-                  추천해드리는 여행은 바로 택시투어입니다. 많은 분들이 택시투어
-                  하면 타이베이 외곽 예스진지투어 또는 화련 택시투어만
-                  생각하시는데요.그런데 가족끼리 함께 하는 여행은 좀 다르죠!
-                  특히 아이들이 있거나 어르신을 모시고 대만여행을 오신다면
-                  대중교통을 이용해 여행을 하는게 좀 부담스러울 수도 있어요.
-                  그렇다고 패키지로 여행을 하자니 여행일정이 맘에 안들거나
-                  대만에서 꼭 가보고 싶은 여행지가 코스에서 빠져있는 경우도
-                  많고요. 그런분들에게 추천해드리는 여행은 바로 택시투어입니다.
-                  많은 분들이 택시투어 하면 타이베이 외곽 예스진지투어 또는 화련
-                  택시투어만 생각하시는데요.그런데 가족끼리 함께 하는 여행은 좀
-                  다르죠! 특히 아이들이 있거나 어르신을 모시고 대만여행을
-                  오신다면 대중교통을 이용해 여행을 하는게 좀 부담스러울 수도
-                  있어요. 그렇다고 패키지로 여행을 하자니 여행일정이 맘에
-                  안들거나 대만에서 꼭 가보고 싶은 여행지가 코스에서 빠져있는
-                  경우도 많고요. 그런분들에게 추천해드리는 여행은 바로
-                  택시투어입니다. 많은 분들이 택시투어 하면 타이베이 외곽
-                  예스진지투어 또는 화련 택시투어만 생각하시는데요.
-                </PostContent>
-              </PostLink>
-              <PostAction>
-                <PostActionButton color="#8585ff">수정</PostActionButton>
-                <PostActionButton color="#ff4949">삭제</PostActionButton>
-              </PostAction>
-            </PostBox>
-          );
-        })}
+        {posts.length > 0 ? (
+          posts?.map((post: PostsType, index: number) => {
+            return (
+              <PostBox key={index + 1}>
+                <PostHeader>
+                  <PostAuthor>
+                    <PostAvatar></PostAvatar>
+                    <PostName>{user?.displayName || "사용자"}</PostName>
+                  </PostAuthor>
+                  <PostCreatedAt>{post.createdAt}</PostCreatedAt>
+                </PostHeader>
+                <PostLink to={`/posts/${post.id}`}>
+                  <PostTitle>{post.title}</PostTitle>
+                  <PostContent>{post.summary}</PostContent>
+                </PostLink>
+
+                {post.email === user?.email && (
+                  <PostAction>
+                    <PostLink to={`/posts/edit/${post.id}`}>
+                      <PostActionButton color="#8585ff">수정</PostActionButton>
+                    </PostLink>
+                    <PostActionButton color="#ff4949">삭제</PostActionButton>
+                  </PostAction>
+                )}
+              </PostBox>
+            );
+          })
+        ) : (
+          <div>게시글이 없습니다.</div>
+        )}
       </Posts>
     </>
   );

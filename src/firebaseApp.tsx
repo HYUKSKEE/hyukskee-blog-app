@@ -2,6 +2,8 @@ import { initializeApp, FirebaseApp, getApp } from "firebase/app";
 import "firebase/auth";
 import { fbConfig } from "./env";
 
+import { getFirestore } from "firebase/firestore";
+
 export let app: FirebaseApp;
 
 // Your web app's Firebase configuration
@@ -22,5 +24,8 @@ try {
 
 // Initialize Firebase
 const firebase = initializeApp(firebaseConfig);
+
+// Initialize Cloud Firestore and get a reference to the service
+export const db = getFirestore(app);
 
 export default firebase;

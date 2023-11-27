@@ -1,20 +1,87 @@
 import styled from "styled-components";
+import { useContext, useState } from "react";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "firebaseApp";
+import AuthContext from "context/AuthContext";
+
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function PostForm() {
+  const [title, setTitle] = useState<string>("");
+  const [summary, setSummary] = useState<string>("");
+  const [content, setContent] = useState<string>("");
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const onChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const {
+      target: { name, value },
+    } = e;
+
+    if (name === "title") {
+      setTitle(value);
+    }
+    if (name === "summary") {
+      setSummary(value);
+    }
+    if (name === "content") {
+      setContent(value);
+    }
+  };
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    try {
+      await addDoc(collection(db, "posts"), {
+        title: title,
+        summary: summary,
+        content: content,
+        createdAt: new Date()?.toLocaleDateString(),
+        email: user?.email,
+      });
+
+      toast?.success("게시물 업로드에 성공했습니다.");
+      navigate("/");
+    } catch (e: any) {
+      console.log(e);
+      toast?.error(e.code);
+    }
+  };
+
   return (
     <>
-      <Form action="/post" method="POST">
+      <Form onSubmit={onSubmit}>
         <FormBox>
           <FormLabel htmlFor="title">제목</FormLabel>
-          <FormTextInput type="text" name="title" id="title" required />
+          <FormTextInput
+            type="text"
+            name="title"
+            id="title"
+            required
+            onChange={onChange}
+          />
         </FormBox>
         <FormBox>
           <FormLabel htmlFor="summary">요약</FormLabel>
-          <FormTextInput type="text" name="summary" id="summary" />
+          <FormTextInput
+            type="text"
+            name="summary"
+            id="summary"
+            onChange={onChange}
+          />
         </FormBox>
         <FormBox>
-          <FormLabel htmlFor="summary">내용</FormLabel>
-          <FormTextarea name="summary" id="summary"></FormTextarea>
+          <FormLabel htmlFor="content">내용</FormLabel>
+          <FormTextarea
+            name="content"
+            id="content"
+            onChange={onChange}
+            required
+          ></FormTextarea>
         </FormBox>
         <FormBox>
           <FormSubmitInput type="submit" value="제출" />
