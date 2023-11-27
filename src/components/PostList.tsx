@@ -1,15 +1,94 @@
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import {
+  doc,
+  collection,
+  getDocs,
+  deleteDoc,
+  query,
+  orderBy,
+  where,
+} from "firebase/firestore";
+import { db } from "firebaseApp";
+import AuthContext from "context/AuthContext";
+import { toast } from "react-toastify";
+import { CATEGORIES, CategoryType } from "./PostForm";
 
 interface PostListProps {
   hasNavigation?: boolean;
+  defaultTab?: TActiveTab;
 }
 
-type TActiveTab = "all" | "me";
+export interface PostsType {
+  id?: string;
+  title: string;
+  summary: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  email: string;
+  uid: string;
+  category: CategoryType;
+}
 
-export default function PostList({ hasNavigation = true }: PostListProps) {
-  const [currentTab, setCurrentTab] = useState<TActiveTab>("all");
+type TActiveTab = "all" | "me" | CategoryType;
+
+export default function PostList({
+  hasNavigation = true,
+  defaultTab = "all",
+}: PostListProps) {
+  const [currentTab, setCurrentTab] = useState<TActiveTab | string>(defaultTab);
+  const [posts, setPosts] = useState<PostsType[]>([]);
+  const { user } = useContext(AuthContext);
+
+  const getPosts = async () => {
+    setPosts([]); // post 초기화
+    let postsRef = collection(db, "posts");
+    let postsQuery = query(postsRef, orderBy("createdAt", "asc"));
+
+    if (currentTab === "me") {
+      postsQuery = query(
+        postsRef,
+        where("uid", "==", user?.uid),
+        orderBy("createdAt", "asc")
+      );
+    } else if (currentTab === "all") {
+      postsQuery = query(postsRef, orderBy("createdAt", "asc"));
+    } else {
+      postsQuery = query(
+        postsRef,
+        where("category", "==", currentTab),
+        orderBy("createdAt", "asc")
+      );
+    }
+
+    const dataList = await getDocs(postsQuery);
+    dataList.forEach((doc) => {
+      const dataObject = { ...doc.data(), id: doc.id };
+
+      setPosts((prev) => [...prev, dataObject as PostsType]);
+    });
+  };
+
+  const handleDelete = async (id?: string) => {
+    const confirm = window.confirm("정말 삭제 하시겠습니까?");
+
+    if (!confirm) {
+      toast.info("게시글 삭제를 취소했습니다.");
+    }
+
+    if (id && confirm) {
+      const docRef = doc(db, "posts", id);
+      await deleteDoc(docRef);
+      toast.error("게시글을 삭제했습니다.");
+      getPosts(); // post 갱신
+    }
+  };
+
+  useEffect(() => {
+    getPosts();
+  }, [currentTab]);
 
   return (
     <>
@@ -28,58 +107,57 @@ export default function PostList({ hasNavigation = true }: PostListProps) {
             >
               나의 글
             </Tab>
+
+            {CATEGORIES.map((category, index) => (
+              <Tab
+                key={index + 1}
+                active={currentTab === category ? "true" : "false"}
+                onClick={() => setCurrentTab(category)}
+              >
+                {category}
+              </Tab>
+            ))}
           </TabFilter>
         )}
-        {[
-          ...Array(10)
-            .fill(0)
-            .map((value, index) => {
-              return index + 1;
-            }),
-        ].map((list) => {
-          return (
-            <PostBox key={list}>
-              <PostHeader>
-                <PostAuthor>
-                  <PostAvatar></PostAvatar>
-                  <PostName>Kevin</PostName>
-                </PostAuthor>
-                <PostCreatedAt>2023.09.23</PostCreatedAt>
-              </PostHeader>
-              <PostLink to={`/posts/${list}`}>
-                <PostTitle>대만 여행 {list}일차 기록</PostTitle>
-                <PostContent>
-                  그런데 가족끼리 함께 하는 여행은 좀 다르죠! 특히 아이들이
-                  있거나 어르신을 모시고 대만여행을 오신다면 대중교통을 이용해
-                  여행을 하는게 좀 부담스러울 수도 있어요. 그렇다고 패키지로
-                  여행을 하자니 여행일정이 맘에 안들거나 대만에서 꼭 가보고 싶은
-                  여행지가 코스에서 빠져있는 경우도 많고요. 그런분들에게
-                  추천해드리는 여행은 바로 택시투어입니다. 많은 분들이 택시투어
-                  하면 타이베이 외곽 예스진지투어 또는 화련 택시투어만
-                  생각하시는데요.그런데 가족끼리 함께 하는 여행은 좀 다르죠!
-                  특히 아이들이 있거나 어르신을 모시고 대만여행을 오신다면
-                  대중교통을 이용해 여행을 하는게 좀 부담스러울 수도 있어요.
-                  그렇다고 패키지로 여행을 하자니 여행일정이 맘에 안들거나
-                  대만에서 꼭 가보고 싶은 여행지가 코스에서 빠져있는 경우도
-                  많고요. 그런분들에게 추천해드리는 여행은 바로 택시투어입니다.
-                  많은 분들이 택시투어 하면 타이베이 외곽 예스진지투어 또는 화련
-                  택시투어만 생각하시는데요.그런데 가족끼리 함께 하는 여행은 좀
-                  다르죠! 특히 아이들이 있거나 어르신을 모시고 대만여행을
-                  오신다면 대중교통을 이용해 여행을 하는게 좀 부담스러울 수도
-                  있어요. 그렇다고 패키지로 여행을 하자니 여행일정이 맘에
-                  안들거나 대만에서 꼭 가보고 싶은 여행지가 코스에서 빠져있는
-                  경우도 많고요. 그런분들에게 추천해드리는 여행은 바로
-                  택시투어입니다. 많은 분들이 택시투어 하면 타이베이 외곽
-                  예스진지투어 또는 화련 택시투어만 생각하시는데요.
-                </PostContent>
-              </PostLink>
-              <PostAction>
-                <PostActionButton color="#8585ff">수정</PostActionButton>
-                <PostActionButton color="#ff4949">삭제</PostActionButton>
-              </PostAction>
-            </PostBox>
-          );
-        })}
+        {posts.length > 0 ? (
+          posts?.map((post: PostsType, index: number) => {
+            return (
+              <PostBox key={index + 1}>
+                <PostHeader>
+                  <PostAuthor>
+                    <PostAvatar></PostAvatar>
+                    <PostName>{user?.displayName || "사용자"}</PostName>
+                  </PostAuthor>
+                  <PostCreatedAt>
+                    {post.updatedAt
+                      ? `${post.updatedAt}에 수정됨`
+                      : post.createdAt}
+                  </PostCreatedAt>
+                </PostHeader>
+                <PostLink to={`/posts/${post.id}`}>
+                  <PostTitle>{post.title}</PostTitle>
+                  <PostContent>{post.summary}</PostContent>
+                </PostLink>
+
+                {post.email === user?.email && (
+                  <PostAction>
+                    <PostLink to={`/posts/edit/${post.id}`}>
+                      <PostActionButton color="#8585ff">수정</PostActionButton>
+                    </PostLink>
+                    <PostActionButton
+                      color="#ff4949"
+                      onClick={() => handleDelete(post.id)}
+                    >
+                      삭제
+                    </PostActionButton>
+                  </PostAction>
+                )}
+              </PostBox>
+            );
+          })
+        ) : (
+          <EmptyPosts>게시글이 없습니다.</EmptyPosts>
+        )}
       </Posts>
     </>
   );
@@ -105,6 +183,7 @@ const Tab = styled.div<ITab>`
 `;
 
 const Posts = styled.div`
+  position: relative;
   max-width: 1280px;
   width: 100%;
   height: 100%;
@@ -202,5 +281,41 @@ const PostActionButton = styled.button<IPostActionButton>`
   &:focus {
     background-color: #f0f0f0;
     color: ${(props) => props.color};
+  }
+`;
+
+const EmptyPosts = styled.div`
+  margin: auto;
+  margin-top: 100px;
+  padding: 24px;
+  width: max-content;
+  font-size: 24px;
+  border: 1px solid #dfdfdf;
+  border-radius: 24px;
+  color: #a1a1a1;
+`;
+
+// TODO: loader 적용
+const Loading = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  border: 5px solid black;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+  z-index: 10;
+
+  @keyframes rotation {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 `;
