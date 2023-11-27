@@ -1,6 +1,6 @@
 import { initializeApp, FirebaseApp, getApp } from "firebase/app";
 import "firebase/auth";
-import { fbConfig } from "../env";
+import { fbConfig } from "./env";
 
 export let app: FirebaseApp;
 
