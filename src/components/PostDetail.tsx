@@ -8,7 +8,7 @@ import AuthContext from "context/AuthContext";
 import { useContext, useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import Comments from "./Comments";
+import Comments from "components/Comments";
 
 export default function PostsDetail() {
   const [post, setPost] = useState<PostsType | null>(null);
@@ -49,39 +49,39 @@ export default function PostsDetail() {
   return (
     <>
       <Header />
-      {post && (
-        <PostBox>
-          <PostTitle>{post.title}</PostTitle>
-          <PostCategory>{post.category}</PostCategory>
+      <PostBox>
+        {post && (
+          <>
+            <PostTitle>{post.title}</PostTitle>
+            <PostCategory>{post.category}</PostCategory>
 
-          <PostHeader>
-            <PostAuthor>
-              <PostAvatar></PostAvatar>
-              <PostName>{user?.displayName || "사용자"}</PostName>
-            </PostAuthor>
-            <PostCreatedAt>{post.createdAt}</PostCreatedAt>
-          </PostHeader>
+            <PostHeader>
+              <PostAuthor>
+                <PostAvatar></PostAvatar>
+                <PostName>{user?.displayName || user?.email}</PostName>
+              </PostAuthor>
+              <PostCreatedAt>{post.createdAt}</PostCreatedAt>
+            </PostHeader>
 
-          {post.email === user?.email && (
-            <PostAction>
-              <PostLink to={`/posts/edit/${post.id}`}>
-                <PostActionButton color="#8585ff">수정</PostActionButton>
-              </PostLink>
-              <PostActionButton
-                color="#ff4949"
-                onClick={() => handleDelete(post.id)}
-              >
-                삭제
-              </PostActionButton>
-            </PostAction>
-          )}
+            {post.email === user?.email && (
+              <PostAction>
+                <PostLink to={`/posts/edit/${post.id}`}>
+                  <PostActionButton color="#8585ff">수정</PostActionButton>
+                </PostLink>
+                <PostActionButton
+                  color="#ff4949"
+                  onClick={() => handleDelete(post.id)}
+                >
+                  삭제
+                </PostActionButton>
+              </PostAction>
+            )}
 
-          <PostContent>{post.content}</PostContent>
-        </PostBox>
-      )}
-
-      <Comments />
-
+            <PostContent>{post.content}</PostContent>
+            <Comments post={post} getPostDetail={getPostDetail} />
+          </>
+        )}
+      </PostBox>
       <Footer />
     </>
   );
