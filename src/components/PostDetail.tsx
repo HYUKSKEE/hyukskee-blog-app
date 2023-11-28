@@ -8,6 +8,7 @@ import AuthContext from "context/AuthContext";
 import { useContext, useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import Comments from "./Comments";
 
 export default function PostsDetail() {
   const [post, setPost] = useState<PostsType | null>(null);
@@ -79,6 +80,8 @@ export default function PostsDetail() {
         </PostBox>
       )}
 
+      <Comments />
+
       <Footer />
     </>
   );
@@ -119,28 +122,28 @@ const PostAvatar = styled.div`
   border-radius: 100%;
 `;
 
-const PostName = styled.div`
+const PostName = styled.p`
   font-size: 18px;
   font-weight: 500;
   color: #120f0f;
 `;
 
-const PostCreatedAt = styled.div`
+const PostCreatedAt = styled.p`
   color: #02af89;
 `;
 
-const PostCategory = styled.div`
+const PostCategory = styled.p`
   font-size: 20px;
   color: #a1a1a1;
 `;
 
-const PostTitle = styled.div`
+const PostTitle = styled.p`
   font-size: 36px;
   font-weight: 600;
   color: #202020;
 `;
 
-const PostContent = styled.div`
+const PostContent = styled.p`
   text-align: left;
   word-break: keep-all;
   color: #a2a2a2;

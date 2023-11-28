@@ -87,7 +87,7 @@ export default function LoginForm() {
           />
         </FormBox>
 
-        {error && error.length > 0 && <div>{error}</div>}
+        {error && error.length > 0 && <ErrorMassage>{error}</ErrorMassage>}
 
         <FormBox>
           <FormSubmitInput
@@ -151,4 +151,10 @@ const FormTextarea = styled.textarea`
   font-size: 16px;
   border-radius: 0.3rem;
   border: 1px solid lightgray;
+`;
+
+const ErrorMassage = styled.div`
+  margin-bottom: 20px;
+  color: red;
+  font-weight: 500;
 `;

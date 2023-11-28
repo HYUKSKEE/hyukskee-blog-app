@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { app } from "firebaseApp";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Router from "./components/Router";
@@ -7,6 +7,7 @@ import styled from "styled-components";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { ThemeContext } from "context/ThemeContext";
 
 function App() {
   const auth = getAuth(app);
@@ -18,6 +19,7 @@ function App() {
     }
   });
   const [isUserInit, setIsUserInit] = useState<boolean>(false);
+  const context = useContext(ThemeContext);
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -33,13 +35,28 @@ function App() {
 
   return (
     <>
-      {isUserInit ? (
-        <>
-          <ToastContainer />
-          <Router isAuthenticated={isAuthenticated} />
-        </>
+      {context.theme === "light" ? (
+        <White>
+          {isUserInit ? (
+            <>
+              <ToastContainer />
+              <Router isAuthenticated={isAuthenticated} />
+            </>
+          ) : (
+            <Loading></Loading>
+          )}
+        </White>
       ) : (
-        <Loading></Loading>
+        <Dark>
+          {isUserInit ? (
+            <>
+              <ToastContainer />
+              <Router isAuthenticated={isAuthenticated} />
+            </>
+          ) : (
+            <Loading></Loading>
+          )}
+        </Dark>
       )}
     </>
   );
@@ -67,5 +84,37 @@ const Loading = styled.div`
     100% {
       transform: rotate(360deg);
     }
+  }
+`;
+
+const White = styled.div`
+  background-color: white;
+  transition: all 0.25s linear;
+`;
+
+const Dark = styled.div`
+  background-color: #1e2937;
+  min-height: 100vh;
+  transition: all 0.25s linear;
+
+  p {
+    margin: 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  a,
+  label,
+  p {
+    color: white;
+  }
+
+  footer,
+  header {
+    background-color: #111827;
   }
 `;

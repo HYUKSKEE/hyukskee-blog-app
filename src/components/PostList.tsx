@@ -177,7 +177,7 @@ const TabFilter = styled.div`
   margin-bottom: 16px;
 `;
 
-const Tab = styled.div<ITab>`
+const Tab = styled.p<ITab>`
   cursor: pointer;
   font-weight: ${(props) => (props.active === "true" ? 900 : 400)};
 `;
@@ -229,17 +229,17 @@ const PostAvatar = styled.div`
   border-radius: 100%;
 `;
 
-const PostName = styled.div`
+const PostName = styled.p`
   font-size: 18px;
   font-weight: 500;
   color: #120f0f;
 `;
 
-const PostCreatedAt = styled.div`
+const PostCreatedAt = styled.p`
   color: #02af89;
 `;
 
-const PostTitle = styled.div`
+const PostTitle = styled.p`
   margin-bottom: 20px;
   font-size: 20px;
   font-weight: 600;
@@ -247,7 +247,7 @@ const PostTitle = styled.div`
   cursor: pointer;
 `;
 
-const PostContent = styled.div`
+const PostContent = styled.p`
   text-align: left;
   display: -webkit-box;
   -webkit-line-clamp: 5;
