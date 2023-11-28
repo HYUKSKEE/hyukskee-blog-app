@@ -14,6 +14,7 @@ import { db } from "firebaseApp";
 import AuthContext from "context/AuthContext";
 import { toast } from "react-toastify";
 import { CATEGORIES, CategoryType } from "./PostForm";
+import { CommentsInterface } from "./Comments";
 
 interface PostListProps {
   hasNavigation?: boolean;
@@ -23,6 +24,7 @@ interface PostListProps {
 export interface PostsType {
   id?: string;
   title: string;
+  comments: CommentsInterface[];
   summary: string;
   content: string;
   createdAt: string;
