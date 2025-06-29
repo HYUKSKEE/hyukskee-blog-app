@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import styled from "styled-components";
 import { Link, useNavigate } from "react-router-dom";
-
-import { app } from "firebaseApp";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import AuthContext from "context/AuthContext";
+import { toast } from "react-toastify";
 
 export default function SignUpForm() {
   const [response, setResponse] = useState<string>("");
@@ -13,6 +12,7 @@ export default function SignUpForm() {
   const [passwordConfirm, setPasswordConfirm] = useState<string>("");
 
   const navigate = useNavigate();
+  const { signup } = useContext(AuthContext);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {
@@ -47,7 +47,7 @@ export default function SignUpForm() {
       }
     }
 
-    if (name === "passwordConfirm") {
+    if (name === "password_confirm") {
       setPasswordConfirm(value);
 
       const validRegex =
@@ -59,6 +59,8 @@ export default function SignUpForm() {
         );
       } else if (value !== password) {
         setError("비밀번호 값이 일치하지 않습니다. 다시 확인해주세요.");
+      } else {
+        setError("");
       }
     }
   };
@@ -67,13 +69,13 @@ export default function SignUpForm() {
     e.preventDefault();
 
     try {
-      const auth = getAuth(app);
-
-      await createUserWithEmailAndPassword(auth, email, password).then(() =>
-        navigate("/login")
-      );
-    } catch (e) {
+      await signup(email, password);
+      toast.success("회원가입에 성공했습니다.");
+      navigate("/login");
+    } catch (e: any) {
       console.log(e);
+      setError(e.message || "회원가입 중 오류가 발생했습니다.");
+      toast.error(e.message || "회원가입 중 오류가 발생했습니다.");
     }
   };
 
@@ -88,6 +90,7 @@ export default function SignUpForm() {
             type="text"
             name="email"
             id="email"
+            value={email}
             onChange={onChange}
             required
           />
@@ -99,6 +102,7 @@ export default function SignUpForm() {
             type="password"
             name="password"
             id="password"
+            value={password}
             onChange={onChange}
             required
           />
@@ -110,6 +114,7 @@ export default function SignUpForm() {
             type="password"
             name="password_confirm"
             id="password_confirm"
+            value={passwordConfirm}
             onChange={onChange}
             required
           />
@@ -117,7 +122,7 @@ export default function SignUpForm() {
 
         {error && error.length > 0 && (
           <ErrorTaster>
-            <ErrorMassage>{error}</ErrorMassage>
+            <ErrorMessage>{error}</ErrorMessage>
           </ErrorTaster>
         )}
         <FormBox>
@@ -183,7 +188,7 @@ const ErrorTaster = styled.div`
   text-align: center;
 `;
 
-const ErrorMassage = styled.p`
+const ErrorMessage = styled.p`
   color: red;
   font-size: 18px;
 `;

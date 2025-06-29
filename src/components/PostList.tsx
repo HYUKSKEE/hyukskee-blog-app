@@ -1,16 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import {
-  doc,
-  collection,
-  getDocs,
-  deleteDoc,
-  query,
-  orderBy,
-  where,
-} from "firebase/firestore";
-import { db } from "firebaseApp";
 import AuthContext from "context/AuthContext";
 import { toast } from "react-toastify";
 import { CATEGORIES, CategoryType } from "./PostForm";
@@ -46,31 +36,24 @@ export default function PostList({
 
   const getPosts = async () => {
     setPosts([]); // post 초기화
-    let postsRef = collection(db, "posts");
-    let postsQuery = query(postsRef, orderBy("createdAt", "asc"));
 
+    let allPosts = JSON.parse(localStorage.getItem("posts") || "[]");
+
+    // 필터링 로직
     if (currentTab === "me") {
-      postsQuery = query(
-        postsRef,
-        where("uid", "==", user?.uid),
-        orderBy("createdAt", "asc")
-      );
-    } else if (currentTab === "all") {
-      postsQuery = query(postsRef, orderBy("createdAt", "asc"));
-    } else {
-      postsQuery = query(
-        postsRef,
-        where("category", "==", currentTab),
-        orderBy("createdAt", "asc")
+      allPosts = allPosts.filter((post: PostsType) => post.uid === user?.uid);
+    } else if (currentTab !== "all") {
+      allPosts = allPosts.filter(
+        (post: PostsType) => post.category === currentTab
       );
     }
 
-    const dataList = await getDocs(postsQuery);
-    dataList.forEach((doc) => {
-      const dataObject = { ...doc.data(), id: doc.id };
-
-      setPosts((prev) => [...prev, dataObject as PostsType]);
+    // 생성일 기준으로 정렬 (최신순)
+    allPosts.sort((a: PostsType, b: PostsType) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
+
+    setPosts(allPosts);
   };
 
   const handleDelete = async (id?: string) => {
@@ -78,11 +61,14 @@ export default function PostList({
 
     if (!confirm) {
       toast.info("게시글 삭제를 취소했습니다.");
+      return;
     }
 
     if (id && confirm) {
-      const docRef = doc(db, "posts", id);
-      await deleteDoc(docRef);
+      const posts = JSON.parse(localStorage.getItem("posts") || "[]");
+      const updatedPosts = posts.filter((post: PostsType) => post.id !== id);
+
+      localStorage.setItem("posts", JSON.stringify(updatedPosts));
       toast.error("게시글을 삭제했습니다.");
       getPosts(); // post 갱신
     }
@@ -90,7 +76,7 @@ export default function PostList({
 
   useEffect(() => {
     getPosts();
-  }, [currentTab]);
+  }, [currentTab, user]);
 
   return (
     <>
@@ -124,7 +110,7 @@ export default function PostList({
         {posts.length > 0 ? (
           posts?.map((post: PostsType, index: number) => {
             return (
-              <PostBox key={index + 1}>
+              <PostBox key={post.id || index}>
                 <PostHeader>
                   <PostAuthor>
                     <PostAvatar></PostAvatar>

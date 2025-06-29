@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-
-import { app } from "firebaseApp";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import AuthContext from "context/AuthContext";
+import { toast } from "react-toastify";
 
 export default function LoginForm() {
   const [error, setError] = useState<string>("");
@@ -11,6 +10,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState<string>("");
 
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {
@@ -50,13 +50,13 @@ export default function LoginForm() {
     e.preventDefault();
 
     try {
-      const auth = getAuth(app);
-
-      await signInWithEmailAndPassword(auth, email, password).then((res) => {
-        navigate("/");
-      });
-    } catch (e) {
+      await login(email, password);
+      toast.success("로그인에 성공했습니다.");
+      navigate("/");
+    } catch (e: any) {
       console.log(e);
+      setError(e.message || "로그인 중 오류가 발생했습니다.");
+      toast.error(e.message || "로그인 중 오류가 발생했습니다.");
     }
   };
 
@@ -87,7 +87,7 @@ export default function LoginForm() {
           />
         </FormBox>
 
-        {error && error.length > 0 && <ErrorMassage>{error}</ErrorMassage>}
+        {error && error.length > 0 && <ErrorMessage>{error}</ErrorMessage>}
 
         <FormBox>
           <FormSubmitInput
@@ -153,7 +153,7 @@ const FormTextarea = styled.textarea`
   border: 1px solid lightgray;
 `;
 
-const ErrorMassage = styled.div`
+const ErrorMessage = styled.div`
   margin-bottom: 20px;
   color: red;
   font-weight: 500;

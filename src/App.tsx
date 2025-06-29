@@ -1,7 +1,7 @@
 import "./App.css";
 import { useState, useEffect, useContext } from "react";
-import { app } from "firebaseApp";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+//  import { app } from "firebaseApp";
+// import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Router from "./components/Router";
 import styled from "styled-components";
 
@@ -10,28 +10,17 @@ import "react-toastify/dist/ReactToastify.css";
 import { ThemeContext } from "context/ThemeContext";
 
 function App() {
-  const auth = getAuth(app);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    if (auth.currentUser) {
-      return true;
-    } else {
-      return false;
-    }
-  });
+  // const auth = getAuth(app);
+  // const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+  //   return true;
+  // });
   const [isUserInit, setIsUserInit] = useState<boolean>(false);
   const context = useContext(ThemeContext);
 
   useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
-
-      setIsUserInit(true);
-    });
-  });
+    // 앱 초기화 완료
+    setIsUserInit(true);
+  }, []);
 
   return (
     <>
@@ -40,7 +29,7 @@ function App() {
           {isUserInit ? (
             <>
               <ToastContainer />
-              <Router isAuthenticated={isAuthenticated} />
+              <Router isAuthenticated={true} />
             </>
           ) : (
             <Loading></Loading>
@@ -51,7 +40,7 @@ function App() {
           {isUserInit ? (
             <>
               <ToastContainer />
-              <Router isAuthenticated={isAuthenticated} />
+              <Router isAuthenticated={true} />
             </>
           ) : (
             <Loading></Loading>

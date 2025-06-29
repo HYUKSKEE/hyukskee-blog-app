@@ -1,9 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
-import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
-import { db } from "firebaseApp";
 import AuthContext from "context/AuthContext";
-
 import { toast } from "react-toastify";
 import { PostsType } from "./PostList";
 
@@ -39,29 +36,38 @@ export default function Comments({ post, getPostDetail }: CommentProps) {
 
     try {
       if (post && post.id && user) {
-        const postRef = doc(db, "posts", post.id);
+        const posts = JSON.parse(localStorage.getItem("posts") || "[]");
+        const postIndex = posts.findIndex((p: PostsType) => p.id === post.id);
 
-        const commentObj = {
-          content: comment,
-          uid: user.uid,
-          email: user.email,
-          createdAt: new Date().toLocaleDateString("ko", {
+        if (postIndex !== -1) {
+          const commentObj = {
+            id: Date.now(),
+            content: comment,
+            uid: user.uid,
+            email: user.email,
+            createdAt: new Date().toLocaleDateString("ko", {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            }),
+          };
+
+          // 댓글 추가
+          if (!posts[postIndex].comments) {
+            posts[postIndex].comments = [];
+          }
+          posts[postIndex].comments.push(commentObj);
+
+          // 수정 시간 업데이트
+          posts[postIndex].updatedAt = new Date().toLocaleDateString("ko", {
             hour: "2-digit",
             minute: "2-digit",
             second: "2-digit",
-          }),
-        };
+          });
 
-        await updateDoc(postRef, {
-          comments: arrayUnion(commentObj),
-          updatedAt: new Date().toLocaleDateString("ko", {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          }),
-        });
-
-        await getPostDetail(post.id);
+          localStorage.setItem("posts", JSON.stringify(posts));
+          await getPostDetail(post.id);
+        }
       }
 
       toast.success("댓글을 등록했습니다.");
@@ -75,14 +81,19 @@ export default function Comments({ post, getPostDetail }: CommentProps) {
     const confirm = window.confirm("댓글을 정말 삭제하시겠습니까?");
 
     if (confirm && post.id) {
-      const postRef = doc(db, "posts", post.id);
+      const posts = JSON.parse(localStorage.getItem("posts") || "[]");
+      const postIndex = posts.findIndex((p: PostsType) => p.id === post.id);
 
-      await updateDoc(postRef, {
-        comments: arrayRemove(data),
-      });
+      if (postIndex !== -1) {
+        // 댓글 삭제
+        posts[postIndex].comments = posts[postIndex].comments.filter(
+          (comment: CommentsInterface) => comment.id !== data.id
+        );
 
-      toast.info("댓글을 삭제했습니다.");
-      getPostDetail(post.id);
+        localStorage.setItem("posts", JSON.stringify(posts));
+        toast.info("댓글을 삭제했습니다.");
+        getPostDetail(post.id);
+      }
     }
   };
 
@@ -110,25 +121,23 @@ export default function Comments({ post, getPostDetail }: CommentProps) {
             ?.slice(0)
             ?.reverse()
             .map((comment) => (
-              <>
-                <CommentBox key={comment.id}>
-                  <CommentsHeader>
-                    <CommentEmail>{comment.email}</CommentEmail>
-                    <CommentDate>{comment.createdAt}</CommentDate>
-                    {comment.uid === user?.uid && (
-                      <CommentAction>
-                        <CommentDelete
-                          onClick={() => handleDeleteComment(comment)}
-                        >
-                          삭제
-                        </CommentDelete>
-                      </CommentAction>
-                    )}
-                  </CommentsHeader>
+              <CommentBox key={comment.id}>
+                <CommentsHeader>
+                  <CommentEmail>{comment.email}</CommentEmail>
+                  <CommentDate>{comment.createdAt}</CommentDate>
+                  {comment.uid === user?.uid && (
+                    <CommentAction>
+                      <CommentDelete
+                        onClick={() => handleDeleteComment(comment)}
+                      >
+                        삭제
+                      </CommentDelete>
+                    </CommentAction>
+                  )}
+                </CommentsHeader>
 
-                  <CommentContent>{comment.content}</CommentContent>
-                </CommentBox>
-              </>
+                <CommentContent>{comment.content}</CommentContent>
+              </CommentBox>
             ))}
         </CommentList>
       </CommentsContainer>

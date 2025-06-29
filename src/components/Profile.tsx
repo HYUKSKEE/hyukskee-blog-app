@@ -1,25 +1,21 @@
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-
-import { getAuth, signOut } from "firebase/auth";
-import { app } from "firebaseApp";
 import { toast } from "react-toastify";
 import { useContext } from "react";
 import AuthContext from "context/AuthContext";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
 
   const onSignOut = async () => {
     try {
-      const auth = getAuth(app);
-      await signOut(auth);
+      logout();
       toast.success("로그아웃 되었습니다.");
       navigate("/");
     } catch (e: any) {
       console.log(e);
-      toast.error(e?.code);
+      toast.error("로그아웃 중 오류가 발생했습니다.");
     }
   };
 

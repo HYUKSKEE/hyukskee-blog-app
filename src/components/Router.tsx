@@ -15,7 +15,7 @@ interface RouterProps {
 export default function Router({ isAuthenticated }: RouterProps) {
   return (
     <Routes>
-      {isAuthenticated ? (
+      {true ? (
         <>
           <Route path="/" element={<Home />} />
           <Route path="/posts" element={<Posts />} />

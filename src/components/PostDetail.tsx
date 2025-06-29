@@ -2,8 +2,6 @@ import styled from "styled-components";
 import { IPostActionButton, PostsType } from "components/PostList";
 import Header from "./Header";
 import Footer from "./Footer";
-import { doc, getDoc, deleteDoc } from "firebase/firestore";
-import { db } from "firebaseApp";
 import AuthContext from "context/AuthContext";
 import { useContext, useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
@@ -21,11 +19,14 @@ export default function PostsDetail() {
 
     if (!confirm) {
       toast.info("게시글 삭제를 취소했습니다.");
+      return;
     }
 
     if (id && confirm) {
-      const docRef = doc(db, "posts", id);
-      await deleteDoc(docRef);
+      const posts = JSON.parse(localStorage.getItem("posts") || "[]");
+      const updatedPosts = posts.filter((post: PostsType) => post.id !== id);
+
+      localStorage.setItem("posts", JSON.stringify(updatedPosts));
       toast.error("게시글을 삭제했습니다.");
       navigate("/");
     }
@@ -33,10 +34,12 @@ export default function PostsDetail() {
 
   const getPostDetail = async (id: string) => {
     if (id) {
-      const dorRef = doc(db, "posts", id);
-      const docSnap = await getDoc(dorRef);
+      const posts = JSON.parse(localStorage.getItem("posts") || "[]");
+      const foundPost = posts.find((post: PostsType) => post.id === id);
 
-      setPost({ id: docSnap.id, ...(docSnap.data() as PostsType) });
+      if (foundPost) {
+        setPost(foundPost);
+      }
     }
   };
 

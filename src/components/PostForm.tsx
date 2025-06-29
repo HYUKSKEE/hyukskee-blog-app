@@ -1,9 +1,6 @@
 import styled from "styled-components";
 import { useContext, useEffect, useState } from "react";
-import { collection, addDoc, doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "firebaseApp";
 import AuthContext from "context/AuthContext";
-
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { PostsType } from "./PostList";
@@ -53,26 +50,33 @@ export default function PostForm() {
     e.preventDefault();
 
     try {
+      const posts = JSON.parse(localStorage.getItem("posts") || "[]");
+
       if (params.id) {
-        const docRef = doc(db, "posts", params.id);
+        // 포스트 수정
+        const postIndex = posts.findIndex((p: PostsType) => p.id === params.id);
+        if (postIndex !== -1) {
+          posts[postIndex] = {
+            ...posts[postIndex],
+            title: title,
+            summary: summary,
+            content: content,
+            updatedAt: new Date().toLocaleDateString("ko", {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            }),
+            category: category,
+          };
 
-        await updateDoc(docRef, {
-          title: title,
-          summary: summary,
-          content: content,
-          updatedAt: new Date().toLocaleDateString("ko", {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          }),
-          uid: user?.uid,
-          category: category,
-        });
-
-        toast?.success("게시물 수정에 성공했습니다.");
-        navigate("/");
+          localStorage.setItem("posts", JSON.stringify(posts));
+          toast?.success("게시물 수정에 성공했습니다.");
+          navigate("/");
+        }
       } else {
-        await addDoc(collection(db, "posts"), {
+        // 새 포스트 생성
+        const newPost = {
+          id: Date.now().toString(),
           title: title,
           summary: summary,
           content: content,
@@ -81,26 +85,32 @@ export default function PostForm() {
             minute: "2-digit",
             second: "2-digit",
           }),
-          email: user?.email,
-          uid: user?.uid,
+          updatedAt: "",
+          email: user?.email || "",
+          uid: user?.uid || "",
           category: category,
-        });
+          comments: [],
+        };
 
+        posts.push(newPost);
+        localStorage.setItem("posts", JSON.stringify(posts));
         toast?.success("게시물 업로드에 성공했습니다.");
         navigate("/");
       }
     } catch (e: any) {
       console.log(e);
-      toast?.error(e.code);
+      toast?.error("게시물 저장 중 오류가 발생했습니다.");
     }
   };
 
   const getPostDetail = async (id: string) => {
     if (id) {
-      const dorRef = doc(db, "posts", id);
-      const docSnap = await getDoc(dorRef);
+      const posts = JSON.parse(localStorage.getItem("posts") || "[]");
+      const foundPost = posts.find((p: PostsType) => p.id === id);
 
-      setPost({ id: docSnap.id, ...(docSnap.data() as PostsType) });
+      if (foundPost) {
+        setPost(foundPost);
+      }
     }
   };
 
@@ -140,11 +150,13 @@ export default function PostForm() {
             name="category"
             id="category"
             onChange={onChange}
-            defaultValue={category}
+            value={category || ""}
           >
             <option value="">---카테고리 선택</option>
             {CATEGORIES.map((category) => (
-              <option value={category}>{category}</option>
+              <option key={category} value={category}>
+                {category}
+              </option>
             ))}
           </FormSelect>
         </FormBox>
